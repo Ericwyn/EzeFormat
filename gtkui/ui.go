@@ -14,6 +14,10 @@ import (
 
 var textView *gtk.TextView
 
+var win *gtk.Window
+
+var version = "V1.0.3"
+
 func StartApp() {
 	log.I("open gui by gtk")
 	if trySendMessage(ipc.IpcMessagePing) {
@@ -32,7 +36,7 @@ func StartApp() {
 
 func OpenNewApp() {
 	gtk.Init(nil)
-	win := initWindows("EzeFormat")
+	win = initWindows("EzeFormat  " + version)
 
 	// 输入框
 	inputBox, tv := initInputBox()
@@ -137,6 +141,10 @@ func initWindows(title string) *gtk.Window {
 	win.SetName("EzeFormat")
 
 	return win
+}
+
+func mainWindowsFocus() {
+	win.Present()
 }
 
 func initInputBox() (*gtk.Box, *gtk.TextView) {

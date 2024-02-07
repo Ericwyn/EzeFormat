@@ -69,6 +69,9 @@ func setSelectTextToJsonFormatBox() bool {
 	//
 	//startJsonFormat()
 
+	// 聚焦
+	mainWindowsFocus()
+
 	SetInputFunc(selectText)
 	FormatSmartFunc()
 

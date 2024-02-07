@@ -29,7 +29,8 @@ func GuessType(str string) GuessStrType {
 	// 先要去除开头和结尾的空格
 	str = strings.Trim(str, " ")
 
-	if strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}") {
+	if (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
+		(strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]")) {
 		return TypeJson
 	}
 	if strings.Contains(str, "?xml") || (strings.HasPrefix(str, "<") && strings.HasSuffix(str, ">")) {
