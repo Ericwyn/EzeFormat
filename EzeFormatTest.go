@@ -24,12 +24,12 @@ func main() {
 	win.SetPosition(gtk.WIN_POS_CENTER)
 
 	//iconPath := pathutils.GetRunnerPath() + "/res-static/icon/json.ico"
-	iconPath := "./res-static/icon/json.ico"
+	//iconPath := "./res-static/icon/json.ico"
+	iconPath := "./res-static/icon/icon.png"
 	log.I("runPath: ", pathutils.GetRunnerPath(), ", icon: "+iconPath)
 
-	err = win.SetIconFromFile("/home/ericwyn/dev/go/EzeFormat/res-static/json.ico")
+	err = win.SetIconFromFile(iconPath)
 
-	//iconImg, err := gdk.PixbufNewFromFile(iconPath)
 	if err != nil {
 		log.E("set icon error ", err)
 	}

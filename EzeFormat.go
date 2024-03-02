@@ -1,7 +1,13 @@
 package main
 
-import "github.com/Ericwyn/EzeFormat/gtkui"
+import (
+	"flag"
+	"github.com/Ericwyn/EzeFormat/gtkui"
+)
+
+var xclipFlag = flag.Bool("x", false, "从剪贴板获取输入数据")
 
 func main() {
-	gtkui.StartApp()
+	flag.Parse()
+	gtkui.StartApp(*xclipFlag)
 }

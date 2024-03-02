@@ -23,16 +23,27 @@ const TypeDateTimeMills = "DateTimeMills"     // 时间 '2023-04-03 00:00:00.000
 
 const TypeUnknown GuessStrType = "Unknown"
 
+func StringTrim(str string) string {
+	str = strings.Trim(str, " ")
+	//str = strings.Trim(str, "\n\t")
+	str = strings.Trim(str, "\r\n")
+	str = strings.Trim(str, "\n")
+	str = strings.Trim(str, "\r")
+	//str = strings.Trim(str, "\t")
+	return str
+}
+
 func GuessType(str string) GuessStrType {
 	log.D("guess ", str)
 
-	// 先要去除开头和结尾的空格
-	str = strings.Trim(str, " ")
+	// 先要去除开头和结尾的空格 / 换行
+	str = StringTrim(str)
 
 	if (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
 		(strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]")) {
 		return TypeJson
 	}
+
 	if strings.Contains(str, "?xml") || (strings.HasPrefix(str, "<") && strings.HasSuffix(str, ">")) {
 		return TypeXml
 	}

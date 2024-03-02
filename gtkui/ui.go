@@ -2,45 +2,70 @@ package gtkui
 
 import (
 	"fmt"
-	"github.com/Ericwyn/EzeFormat/ipc"
 	"github.com/Ericwyn/EzeFormat/log"
 	"github.com/Ericwyn/EzeFormat/utils/gotkutils"
 	"github.com/Ericwyn/EzeFormat/utils/pathutils"
 	"github.com/Ericwyn/EzeFormat/utils/strutils"
+	"github.com/Ericwyn/EzeFormat/utils/xclip"
 	"github.com/gotk3/gotk3/gtk"
 	"strings"
 	"time"
 )
 
-var textView *gtk.TextView
+// 主输入框
+var inputView *gtk.TextView
+
+// 备注
+var noteText *gtk.Label
 
 var win *gtk.Window
 
 var version = "V1.0.3"
 
-func StartApp() {
-	log.I("open gui by gtk")
-	if trySendMessage(ipc.IpcMessagePing) {
-		// 如果已经有其他翻译进程的话, 就发送一下消息，然后退出就好了
-		sendSocketMessage(false)
-		return
-	}
+// StartApp 开启应用
+// useXclipData 是否从剪切板获取数据
+func StartApp(useXclipData bool) {
+	//log.I("open gui by gtk")
+	//if trySendMessage(ipc.IpcMessagePing) {
+	//	// 如果已经有其他翻译进程的话, 就发送一下消息，然后退出就好了
+	//	sendSocketMessage(false)
+	//	return
+	//}
+	//
+	//// 开启 server 监听来自其他进程的翻译请求
+	//startUnixSocketServer()
+	//// 此处需要异步，需要等 app 界面起来之后再去做消息发送
+	//go sendSocketMessage(true)
 
-	// 开启 server 监听来自其他进程的翻译请求
-	startUnixSocketServer()
-	// 此处需要异步，需要等 app 界面起来之后再去做消息发送
-	go sendSocketMessage(true)
+	// 如果需要剪切板数据, 特殊处理
+	if useXclipData {
+		go func() {
+			// sleep 0.5s
+			time.Sleep(time.Millisecond * 300)
+			// 获取滑词然后格式化翻译
+			setSelectTextToJsonFormatBox()
+		}()
+	}
 
 	OpenNewApp()
 }
 
 func OpenNewApp() {
 	gtk.Init(nil)
-	win = initWindows("EzeFormat  " + version)
+	win = initWindows("EzeFormat")
 
 	// 输入框
 	inputBox, tv := initInputBox()
-	textView = tv
+	inputView = tv
+
+	// 异常提示
+	noteText, _ = gtk.LabelNew("")
+	noteText.SetHAlign(gtk.ALIGN_START)
+
+	// author
+	authorLine, _ := gtk.LabelNew(" Source: https://github.com/Ericwyn/EzeFormat 【 " + version + "】")
+	authorLine.SetHAlign(gtk.ALIGN_START)
+	authorLine.SetName("authorLine")
 
 	//btn 框框
 	btnBoxLineSmart := initBtnBoxWithWrapBox([]gotkutils.BtnDefine{
@@ -81,13 +106,13 @@ func OpenNewApp() {
 		{
 			Name:    "FormatXmlBtn",
 			Label:   "XML 解析",
-			OnClick: FormatJsonFunc,
+			OnClick: FormatXmlFunc,
 			Width:   150,
 		},
 		{
 			Name:    "CompressXmlBtn",
 			Label:   "XML 压缩",
-			OnClick: CompressJsonFunc,
+			OnClick: CompressXmlFunc,
 			Width:   150,
 		},
 	})
@@ -96,12 +121,16 @@ func OpenNewApp() {
 	containerBox := gotkutils.NewBox(gtk.ORIENTATION_VERTICAL)
 	containerBox.SetName("appContainer")
 	containerBox.Add(inputBox)
+	containerBox.Add(noteText)
 	containerBox.Add(btnBoxLineSmart)
 	containerBox.Add(btnBoxLineJson)
 	//containerBox.Add(btnBoxLineXml)
+	containerBox.Add(authorLine)
 	win.Add(containerBox)
 
 	win.ShowAll()
+
+	mainWindowsFocus()
 
 	err := runCss()
 	if err != nil {
@@ -127,7 +156,7 @@ func initWindows(title string) *gtk.Window {
 	win.SetResizable(false)
 	win.SetPosition(gtk.WIN_POS_CENTER)
 
-	iconPath := pathutils.GetRunnerPath() + "/res-static/icon/json.ico"
+	iconPath := pathutils.GetRunnerPath() + "/res-static/icon/icon.png"
 	log.I("runPath: ", pathutils.GetRunnerPath(), ", icon: "+iconPath)
 
 	err = win.SetIconFromFile(iconPath)
@@ -144,7 +173,19 @@ func initWindows(title string) *gtk.Window {
 }
 
 func mainWindowsFocus() {
-	win.Present()
+	//win.Present()
+
+	win.SetKeepAbove(true)
+
+	//win.SetKeepAbove(false)
+
+	//inputView.GrabFocus()
+	//
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		win.SetKeepAbove(false)
+	}()
+
 }
 
 func initInputBox() (*gtk.Box, *gtk.TextView) {
@@ -204,85 +245,120 @@ func initBtnBox(btnList []gotkutils.BtnDefine) *gtk.Box {
 
 // SetInputFunc 设置输入框
 func SetInputFunc(str string) {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	gotkutils.SetTextViewInput(textView, str)
+	gotkutils.SetTextViewInput(inputView, str)
+}
+
+func setNoteMsg(prefix string, err error) {
+	if err != nil {
+		noteText.SetText(" " + prefix + err.Error())
+	} else {
+		noteText.SetText("")
+	}
 }
 
 // FormatSmartFunc 智能格式化
 func FormatSmartFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	input := gotkutils.GetTextViewInput(textView)
-	gotkutils.SetTextViewInput(textView, strutils.FormatSmart(input))
+	input := gotkutils.GetTextViewInput(inputView)
+
+	formatResult, err := strutils.FormatSmart(input)
+	setNoteMsg("智能格式化失败: ", err)
+
+	gotkutils.SetTextViewInput(inputView, formatResult)
 }
 
 // CompressSmartFunc 智能格式化
 func CompressSmartFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	input := gotkutils.GetTextViewInput(textView)
-	gotkutils.SetTextViewInput(textView, strutils.CompressSmart(input))
+	input := gotkutils.GetTextViewInput(inputView)
+
+	compressResult, err := strutils.CompressSmart(input)
+	setNoteMsg("智能压缩失败: ", err)
+
+	gotkutils.SetTextViewInput(inputView, compressResult)
 }
 
 // TimeNowFunc 展示当前时间戳
 func TimeNowFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	//input := gotkutils.GetTextViewInput(textView)
-	gotkutils.SetTextViewInput(textView, strutils.FormatType(fmt.Sprint(time.Now().UnixMilli()), strutils.TypeTimeStampMills))
+
+	timeNow, err := strutils.FormatType(fmt.Sprint(time.Now().UnixMilli()), strutils.TypeTimeStampMills)
+	setNoteMsg("展示当前时间戳失败: ", err)
+
+	gotkutils.SetTextViewInput(inputView, timeNow)
 }
 
 // FormatJsonFunc 格式化
 func FormatJsonFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	input := gotkutils.GetTextViewInput(textView)
-	gotkutils.SetTextViewInput(textView, strutils.FormatType(input, strutils.TypeJson))
+	input := gotkutils.GetTextViewInput(inputView)
+
+	formatResult, err := strutils.FormatType(input, strutils.TypeJson)
+	setNoteMsg("JSON 格式化失败: ", err)
+
+	gotkutils.SetTextViewInput(inputView, formatResult)
 }
 
 // CompressJsonFunc 压缩
 func CompressJsonFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	input := gotkutils.GetTextViewInput(textView)
-	gotkutils.SetTextViewInput(textView, strutils.CompressType(input, strutils.TypeJson))
+	input := gotkutils.GetTextViewInput(inputView)
+
+	compressResult, err := strutils.CompressType(input, strutils.TypeJson)
+	setNoteMsg("JSON 压缩失败: ", err)
+
+	gotkutils.SetTextViewInput(inputView, compressResult)
 }
 
 // FormatXmlFunc 格式化
 func FormatXmlFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	input := gotkutils.GetTextViewInput(textView)
-	gotkutils.SetTextViewInput(textView, strutils.FormatType(input, strutils.TypeXml))
+	input := gotkutils.GetTextViewInput(inputView)
+
+	formatResult, err := strutils.FormatType(input, strutils.TypeXml)
+	setNoteMsg("Xml 格式化失败: ", err)
+
+	gotkutils.SetTextViewInput(inputView, formatResult)
 }
 
 // CompressXmlFunc 压缩
 func CompressXmlFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	input := gotkutils.GetTextViewInput(textView)
-	gotkutils.SetTextViewInput(textView, strutils.CompressType(input, strutils.TypeXml))
+	input := gotkutils.GetTextViewInput(inputView)
+
+	compressResult, err := strutils.CompressType(input, strutils.TypeXml)
+	setNoteMsg("Xml 压缩失败: ", err)
+
+	gotkutils.SetTextViewInput(inputView, compressResult)
 }
 
 // 清空
 func cleanTextViewFunc() {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	gotkutils.SetTextViewInput(textView, "")
+	gotkutils.SetTextViewInput(inputView, "")
 }
 
 func jsonPreCheck(input string) bool {
-	if textView == nil {
+	if inputView == nil {
 		return false
 	}
 	input = strings.Trim(input, " ")
@@ -295,14 +371,37 @@ func jsonPreCheck(input string) bool {
 		(strings.HasPrefix(input, "{") && strings.HasSuffix(input, "}")) {
 		return true
 	} else {
-		gotkutils.SetTextViewInput(textView, "【错误】: 这看着不太像 JSON ? \n\n"+input)
+		gotkutils.SetTextViewInput(inputView, "【错误】: 这看着不太像 JSON ? \n\n"+input)
 		return false
 	}
 }
 
 func setTextViewWrap(warpMode gtk.WrapMode) {
-	if textView == nil {
+	if inputView == nil {
 		return
 	}
-	textView.SetWrapMode(warpMode)
+	inputView.SetWrapMode(warpMode)
+}
+
+func setSelectTextToJsonFormatBox() {
+	//jsonWindow.RequestFocus()
+	//inputBox := jsonEntryBox
+
+	selectText := xclip.GetSelection()
+	log.D("获取的划词:", selectText)
+
+	selectText = strutils.StringTrim(selectText)
+	//inputBox.SetText(selectText)
+	//
+	//startJsonFormat()
+
+	// 聚焦
+	//mainWindowsFocus()
+
+	SetInputFunc(selectText)
+	log.D("设置的划词:", selectText)
+
+	FormatSmartFunc()
+	log.D("智能格式化....")
+	//return true
 }

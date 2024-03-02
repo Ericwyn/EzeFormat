@@ -32,11 +32,18 @@ textview text {
 #FormatXmlBtn, #CompressXmlBtn,
 #cleanTextViewBtn {
 	margin-right: 10px;
-	margin-top: 5px
+	margin-top: 5px;
 }
 
 #WrapChangeBtn {
 	margin-left: 20px;
+}
+
+#authorLine {
+	margin-top: 10px;
+	margin-bottom: 5px;
+	color: #999;
+	font-size: 14px;
 }
 
 `
