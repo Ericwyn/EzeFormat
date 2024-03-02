@@ -10,6 +10,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/Ericwyn/EzeFormat/fyneui/resource"
 	"github.com/Ericwyn/EzeFormat/utils/format"
+	"github.com/Ericwyn/EzeFormat/utils/strutils"
+	"github.com/Ericwyn/EzeFormat/utils/xclip"
 	"image/color"
 	"time"
 )
@@ -23,6 +25,20 @@ var homeNoteLabel *widget.Label
 var homeInputBox *EzeMultiLineEntry
 
 func StartApp(useXclipData bool) {
+	if useXclipData {
+		go func() {
+			// sleep 0.5s
+			time.Sleep(time.Millisecond * 300)
+			// 获取滑词然后格式化翻译
+			getSelectTextAndSmartFormat()
+		}()
+	}
+
+	ShowMainUi()
+
+}
+
+func ShowMainUi() {
 	mainApp = app.New()
 	mainApp.SetIcon(resource.ResourceIcon())
 	mainApp.Settings().SetTheme(&resource.CustomerTheme{})
@@ -258,4 +274,19 @@ func setNoteMsg(prefix string, err error) {
 	} else {
 		homeNoteLabel.SetText("")
 	}
+}
+
+// --------------------------------------
+
+func getSelectTextAndSmartFormat() {
+	selectText := xclip.GetSelection()
+
+	selectText = strutils.StringTrim(selectText)
+
+	// 聚焦
+	//mainWindowsFocus()
+
+	homeInputBox.SetText(selectText)
+
+	smartFormatFunc()
 }
