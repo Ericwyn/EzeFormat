@@ -1,6 +1,7 @@
 package fyneui
 
 import (
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
@@ -8,7 +9,9 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/Ericwyn/EzeFormat/fyneui/resource"
+	"github.com/Ericwyn/EzeFormat/utils/format"
 	"image/color"
+	"time"
 )
 
 var version = "V1.0.4"
@@ -57,15 +60,15 @@ func StartApp(useXclipData bool) {
 func BtnPanelLine1() *fyne.Container {
 	return container.NewHBox(
 		newEzeButton("智能解析", func() {
-
+			smartFormatFunc()
 		}),
 
 		newEzeButton("智能压缩", func() {
-
+			smartCompressFunc()
 		}),
 
 		newEzeButton("当前时间", func() {
-
+			timeNowFunc()
 		}),
 
 		newEzeButton("换行切换", func() {
@@ -112,19 +115,19 @@ func BtnPanelLine2() *fyne.Container {
 	return container.NewHBox(
 		//maxLayout,
 		newEzeButton("JSON 解析 ", func() {
-
+			jsonFormatFunc()
 		}),
 
 		newEzeButton("JSON 压缩 ", func() {
-
+			jsonCompressFunc()
 		}),
 
 		newEzeButton("XML 解析  ", func() {
-
+			xmlFormatFunc()
 		}),
 
 		newEzeButton("XML 压缩  ", func() {
-
+			xmlCompressFunc()
 		}),
 	)
 }
@@ -189,4 +192,70 @@ func (e *EzeMultiLineEntry) MinSize() fyne.Size {
 		originalMinSize.Height = e.minSize.Height
 	}
 	return originalMinSize
+}
+
+// ---------------------------------------------------------------------
+// ui 与数据绑定
+
+func smartFormatFunc() {
+	result, err := format.SmartFormat(homeInputBox.Text)
+	setNoteMsg("智能格式化失败: ", err)
+
+	homeInputBox.SetText(result)
+}
+
+// smartCompressFunc 智能格式化
+func smartCompressFunc() {
+	result, err := format.SmartCompress(homeInputBox.Text)
+	setNoteMsg("智能压缩失败: ", err)
+
+	homeInputBox.SetText(result)
+}
+
+// timeNowFunc 展示当前时间戳
+func timeNowFunc() {
+	result, err := format.FormatType(fmt.Sprint(time.Now().UnixMilli()), format.TypeTimeStampMills)
+	setNoteMsg("展示当前时间戳失败: ", err)
+
+	homeInputBox.SetText(result)
+}
+
+// jsonFormatFunc 格式化
+func jsonFormatFunc() {
+	result, err := format.FormatType(homeInputBox.Text, format.TypeJson)
+	setNoteMsg("JSON 格式化失败: ", err)
+
+	homeInputBox.SetText(result)
+}
+
+// jsonCompressFunc 压缩
+func jsonCompressFunc() {
+	result, err := format.CompressType(homeInputBox.Text, format.TypeJson)
+	setNoteMsg("JSON 压缩失败: ", err)
+
+	homeInputBox.SetText(result)
+}
+
+// xmlFormatFunc 格式化
+func xmlFormatFunc() {
+	result, err := format.FormatType(homeInputBox.Text, format.TypeXml)
+	setNoteMsg("Xml 格式化失败: ", err)
+
+	homeInputBox.SetText(result)
+}
+
+// xmlCompressFunc 压缩
+func xmlCompressFunc() {
+	result, err := format.CompressType(homeInputBox.Text, format.TypeXml)
+	setNoteMsg("Xml 压缩失败: ", err)
+
+	homeInputBox.SetText(result)
+}
+
+func setNoteMsg(prefix string, err error) {
+	if err != nil {
+		homeNoteLabel.SetText(" " + prefix + err.Error())
+	} else {
+		homeNoteLabel.SetText("")
+	}
 }
