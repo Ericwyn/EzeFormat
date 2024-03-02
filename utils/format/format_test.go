@@ -1,4 +1,4 @@
-package strutils
+package format
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ func TestGuessType(t *testing.T) {
 }
 
 func TestFormatSmart(t *testing.T) {
-	fmt.Println(FormatSmart("2023-04-03 18:18"))
+	fmt.Println(SmartFormat("2023-04-03 18:18"))
 }
 
 func TestFormatXml(t *testing.T) {

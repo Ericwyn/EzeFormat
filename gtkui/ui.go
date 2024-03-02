@@ -2,8 +2,9 @@ package gtkui
 
 import (
 	"fmt"
+	"github.com/Ericwyn/EzeFormat/gtkui/gotkutils"
 	"github.com/Ericwyn/EzeFormat/log"
-	"github.com/Ericwyn/EzeFormat/utils/gotkutils"
+	"github.com/Ericwyn/EzeFormat/utils/format"
 	"github.com/Ericwyn/EzeFormat/utils/pathutils"
 	"github.com/Ericwyn/EzeFormat/utils/strutils"
 	"github.com/Ericwyn/EzeFormat/utils/xclip"
@@ -20,12 +21,11 @@ var noteText *gtk.Label
 
 var win *gtk.Window
 
-var version = "V1.0.3"
+var version = "V1.0.4"
 
 // StartApp 开启应用
 // useXclipData 是否从剪切板获取数据
 func StartApp(useXclipData bool) {
-	//log.I("open gui by gtk")
 	//if trySendMessage(ipc.IpcMessagePing) {
 	//	// 如果已经有其他翻译进程的话, 就发送一下消息，然后退出就好了
 	//	sendSocketMessage(false)
@@ -43,7 +43,7 @@ func StartApp(useXclipData bool) {
 			// sleep 0.5s
 			time.Sleep(time.Millisecond * 300)
 			// 获取滑词然后格式化翻译
-			setSelectTextToJsonFormatBox()
+			setSelectTextAndSmartFormat()
 		}()
 	}
 
@@ -173,19 +173,12 @@ func initWindows(title string) *gtk.Window {
 }
 
 func mainWindowsFocus() {
-	//win.Present()
-
 	win.SetKeepAbove(true)
 
-	//win.SetKeepAbove(false)
-
-	//inputView.GrabFocus()
-	//
 	go func() {
 		time.Sleep(time.Millisecond * 500)
 		win.SetKeepAbove(false)
 	}()
-
 }
 
 func initInputBox() (*gtk.Box, *gtk.TextView) {
@@ -266,7 +259,7 @@ func FormatSmartFunc() {
 	}
 	input := gotkutils.GetTextViewInput(inputView)
 
-	formatResult, err := strutils.FormatSmart(input)
+	formatResult, err := format.SmartFormat(input)
 	setNoteMsg("智能格式化失败: ", err)
 
 	gotkutils.SetTextViewInput(inputView, formatResult)
@@ -279,7 +272,7 @@ func CompressSmartFunc() {
 	}
 	input := gotkutils.GetTextViewInput(inputView)
 
-	compressResult, err := strutils.CompressSmart(input)
+	compressResult, err := format.SmartCompress(input)
 	setNoteMsg("智能压缩失败: ", err)
 
 	gotkutils.SetTextViewInput(inputView, compressResult)
@@ -291,7 +284,7 @@ func TimeNowFunc() {
 		return
 	}
 
-	timeNow, err := strutils.FormatType(fmt.Sprint(time.Now().UnixMilli()), strutils.TypeTimeStampMills)
+	timeNow, err := format.FormatType(fmt.Sprint(time.Now().UnixMilli()), format.TypeTimeStampMills)
 	setNoteMsg("展示当前时间戳失败: ", err)
 
 	gotkutils.SetTextViewInput(inputView, timeNow)
@@ -304,7 +297,7 @@ func FormatJsonFunc() {
 	}
 	input := gotkutils.GetTextViewInput(inputView)
 
-	formatResult, err := strutils.FormatType(input, strutils.TypeJson)
+	formatResult, err := format.FormatType(input, format.TypeJson)
 	setNoteMsg("JSON 格式化失败: ", err)
 
 	gotkutils.SetTextViewInput(inputView, formatResult)
@@ -317,7 +310,7 @@ func CompressJsonFunc() {
 	}
 	input := gotkutils.GetTextViewInput(inputView)
 
-	compressResult, err := strutils.CompressType(input, strutils.TypeJson)
+	compressResult, err := format.CompressType(input, format.TypeJson)
 	setNoteMsg("JSON 压缩失败: ", err)
 
 	gotkutils.SetTextViewInput(inputView, compressResult)
@@ -330,7 +323,7 @@ func FormatXmlFunc() {
 	}
 	input := gotkutils.GetTextViewInput(inputView)
 
-	formatResult, err := strutils.FormatType(input, strutils.TypeXml)
+	formatResult, err := format.FormatType(input, format.TypeXml)
 	setNoteMsg("Xml 格式化失败: ", err)
 
 	gotkutils.SetTextViewInput(inputView, formatResult)
@@ -343,7 +336,7 @@ func CompressXmlFunc() {
 	}
 	input := gotkutils.GetTextViewInput(inputView)
 
-	compressResult, err := strutils.CompressType(input, strutils.TypeXml)
+	compressResult, err := format.CompressType(input, format.TypeXml)
 	setNoteMsg("Xml 压缩失败: ", err)
 
 	gotkutils.SetTextViewInput(inputView, compressResult)
@@ -383,25 +376,15 @@ func setTextViewWrap(warpMode gtk.WrapMode) {
 	inputView.SetWrapMode(warpMode)
 }
 
-func setSelectTextToJsonFormatBox() {
-	//jsonWindow.RequestFocus()
-	//inputBox := jsonEntryBox
-
+func setSelectTextAndSmartFormat() {
 	selectText := xclip.GetSelection()
-	log.D("获取的划词:", selectText)
 
 	selectText = strutils.StringTrim(selectText)
-	//inputBox.SetText(selectText)
-	//
-	//startJsonFormat()
 
 	// 聚焦
 	//mainWindowsFocus()
 
 	SetInputFunc(selectText)
-	log.D("设置的划词:", selectText)
 
 	FormatSmartFunc()
-	log.D("智能格式化....")
-	//return true
 }

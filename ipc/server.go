@@ -4,10 +4,7 @@ import "github.com/Ericwyn/EzeFormat/log"
 
 type IpcMessage string
 
-const IpcMessageNewSelection IpcMessage = "NEW_SELECTION\n"
-const IpcMessageOcr IpcMessage = "OCR\n"
-const IpcMessageOcrAndTrans IpcMessage = "OCR_AND_TRANS\n"
-const IpcMessageJsonFormat IpcMessage = "JSON_FORMAT\n"
+const IpcMessageSmartFormat IpcMessage = "SMART_FORMAT\n"
 const IpcMessagePing IpcMessage = "PING\n"
 
 type MessageHandler func(message IpcMessage)

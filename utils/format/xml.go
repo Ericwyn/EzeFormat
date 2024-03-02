@@ -1,4 +1,4 @@
-package strutils
+package format
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package strutils
+package format
 
 import (
 	"errors"
@@ -47,9 +47,9 @@ var FormatFuncMap = map[GuessStrType]FormatFunc{
 	},
 }
 
-// FormatSmart
+// SmartFormat
 // 智能格式化, 猜测出来 input 的格式之后，根据不同的格式进行格式化
-func FormatSmart(input string) (string, error) {
+func SmartFormat(input string) (string, error) {
 	// 有这些特殊字符的话，就不要压缩了
 	if strings.Contains(input, "time parse") {
 		return input, nil
@@ -65,9 +65,9 @@ func FormatSmart(input string) (string, error) {
 	return FormatType(input, guessType)
 }
 
-// CompressSmart
+// SmartCompress
 // 智能压缩, 猜测出来 input 的格式之后，根据不同的格式进行压缩
-func CompressSmart(input string) (string, error) {
+func SmartCompress(input string) (string, error) {
 	// 有这些特殊字符的话，就不要压缩了
 	if strings.Contains(input, "time parse") {
 		return input, nil
