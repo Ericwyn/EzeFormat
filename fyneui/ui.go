@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/Ericwyn/EzeFormat/fyneui/resource"
+	"github.com/Ericwyn/EzeFormat/ipc"
 	"github.com/Ericwyn/EzeFormat/utils/format"
 	"github.com/Ericwyn/EzeFormat/utils/strutils"
 	"github.com/Ericwyn/EzeFormat/utils/xclip"
@@ -20,18 +21,36 @@ var version = "V1.0.4"
 
 var mainApp fyne.App
 
+var homeWindow fyne.Window
+
 var homeNoteLabel *widget.Label
 
 var homeInputBox *EzeMultiLineEntry
 
+var useSocket = true
+
 func StartApp(useXclipData bool) {
-	if useXclipData {
-		go func() {
-			// sleep 0.5s
-			time.Sleep(time.Millisecond * 300)
-			// 获取滑词然后格式化翻译
-			getSelectTextAndSmartFormat()
-		}()
+
+	if useSocket {
+		if trySendMessage(ipc.IpcMessagePing) {
+			// 如果已经有其他翻译进程的话, 就发送一下消息，然后退出就好了
+			sendSocketMessage(false)
+			return
+		}
+
+		// 开启 server 监听来自其他进程的翻译请求
+		startUnixSocketServer()
+		// 此处需要异步，需要等 app 界面起来之后再去做消息发送
+		go sendSocketMessage(true)
+	} else {
+		if useXclipData {
+			go func() {
+				// sleep 0.5s
+				time.Sleep(time.Millisecond * 300)
+				// 获取滑词然后格式化翻译
+				getSelectTextAndSmartFormat()
+			}()
+		}
 	}
 
 	ShowMainUi()
@@ -43,7 +62,7 @@ func ShowMainUi() {
 	mainApp.SetIcon(resource.ResourceIcon())
 	mainApp.Settings().SetTheme(&resource.CustomerTheme{})
 
-	homeWindow := mainApp.NewWindow("EzeFormat")
+	homeWindow = mainApp.NewWindow("EzeFormat")
 
 	homeWindow.Resize(fyne.Size{
 		Width: 700,
@@ -287,6 +306,8 @@ func getSelectTextAndSmartFormat() {
 	//mainWindowsFocus()
 
 	homeInputBox.SetText(selectText)
+
+	homeWindow.RequestFocus()
 
 	smartFormatFunc()
 }
