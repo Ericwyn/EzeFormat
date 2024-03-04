@@ -13,7 +13,6 @@ import (
 	"github.com/Ericwyn/EzeFormat/utils/format"
 	"github.com/Ericwyn/EzeFormat/utils/strutils"
 	"github.com/Ericwyn/EzeFormat/utils/xclip"
-	"image/color"
 	"time"
 )
 
@@ -25,9 +24,14 @@ var homeWindow fyne.Window
 
 var homeNoteLabel *widget.Label
 
+var historyTextLabel *widget.Label
+
 var homeInputBox *EzeMultiLineEntry
 
 var useSocket = true
+
+// 编辑历史
+var historyList = make([]string, 0)
 
 func StartApp(useXclipData bool) {
 
@@ -65,7 +69,7 @@ func ShowMainUi() {
 	homeWindow = mainApp.NewWindow("EzeFormat")
 
 	homeWindow.Resize(fyne.Size{
-		Width: 700,
+		Width: 550,
 		//Height: 600,
 	})
 	homeWindow.CenterOnScreen()
@@ -76,10 +80,12 @@ func ShowMainUi() {
 
 	homeNoteLabel = widget.NewLabel("")
 
-	authorNote := widget.NewLabel(" Source: https://github.com/Ericwyn/EzeFormat 【 " + version + "】")
+	//authorNote := widget.NewLabel(" Source: https://github.com/Ericwyn/EzeFormat 【 " + version + "】")
+	authorNote := widget.NewRichTextFromMarkdown("[https://github.com/Ericwyn/EzeFormat](https://github.com/Ericwyn/EzeFormat)     **" + version + "**")
 
 	//hello := widget.NewLabel("Hello Fyne!")
 	homeWindow.SetContent(container.NewVBox(
+		BtnPanelLineHistory(),
 		homeInputBox,
 		homeNoteLabel,
 		BtnPanelLine1(),
@@ -90,84 +96,92 @@ func ShowMainUi() {
 	homeWindow.ShowAndRun()
 }
 
+// BtnPanelLineHistory
+// 智能解析, 智能压缩,当前时间, 换行
+func BtnPanelLineHistory() *fyne.Container {
+	leftSpacer := canvas.NewRectangle(theme.BackgroundColor())
+	leftSpacer.SetMinSize(fyne.NewSize(3, 0)) // 设置固定宽度为20，高度为0表示不限制
+
+	historyTextLabel = widget.NewLabel("0/0")
+
+	return container.NewHBox(
+		leftSpacer,
+		newEzeButtonWithMargin("后退", func() {
+			// 展示前一个历史记录
+			changePreviousHistory()
+		}),
+
+		newEzeButtonWithMargin("前进", func() {
+			// 展示下一个历史记录
+			changeNextHistory()
+		}),
+		leftSpacer,
+		historyTextLabel,
+	)
+
+}
+
 // BtnPanelLine1
 // 智能解析, 智能压缩,当前时间, 换行
 func BtnPanelLine1() *fyne.Container {
+	leftSpacer := canvas.NewRectangle(theme.BackgroundColor())
+	leftSpacer.SetMinSize(fyne.NewSize(3, 0)) // 设置固定宽度为20，高度为0表示不限制
+
 	return container.NewHBox(
-		newEzeButton("智能解析", func() {
+		leftSpacer,
+		newEzeButtonWithMargin("智能解析", func() {
 			smartFormatFunc()
 		}),
 
-		newEzeButton("智能压缩", func() {
+		newEzeButtonWithMargin("智能压缩", func() {
 			smartCompressFunc()
 		}),
 
-		newEzeButton("当前时间", func() {
+		newEzeButtonWithMargin("当前时间", func() {
 			timeNowFunc()
 		}),
 
-		newEzeButton("换行切换", func() {
-			homeInputBox.ToggleWrap()
+		newEzeButtonWithMargin("复制结果", func() {
+			copyTextFunc()
+		}),
+
+		newEzeButtonWithMargin("清除输入", func() {
+			homeInputBox.SetText("")
 		}),
 	)
 
-}
-
-var closeColor *canvas.Rectangle
-var openColor *canvas.Rectangle
-
-func GetCloseColor() *canvas.Rectangle {
-	if closeColor == nil {
-		closeColor = canvas.NewRectangle(color.NRGBA{R: 242, G: 242, B: 242, A: 255})
-	}
-	return closeColor
-}
-
-func GetOpenColor() *canvas.Rectangle {
-	if openColor == nil {
-		openColor = canvas.NewRectangle(color.NRGBA{R: 204, G: 255, B: 204, A: 255})
-	}
-	return openColor
 }
 
 func BtnPanelLine2() *fyne.Container {
-
-	btn := widget.NewButton("测试", func() {
-		// hello.SetText("Welcome :)")
-	})
-
-	btn.Resize(fyne.NewSize(260, 160))
-	btn.Move(fyne.NewPos(30-theme.Padding(), 10))
-
-	// closeColor = canvas.NewRectangle(color.NRGBA{R: 242, G: 242, B: 242, A: 255})
-	// // closeColor.MinSize()
-
-	// openClolor = canvas.NewRectangle(color.NRGBA{R: 204, G: 255, B: 204, A: 255})
-	// // closeColor.MinSize()
-
-	//maxLayout := container.New(layout.NewMaxLayout(), GetCloseColor(), GetOpenColor(), btn)
+	leftSpacer := canvas.NewRectangle(theme.BackgroundColor())
+	leftSpacer.SetMinSize(fyne.NewSize(3, 0)) // 设置固定宽度为20，高度为0表示不限制
 
 	return container.NewHBox(
-		//maxLayout,
-		newEzeButton("JSON 解析 ", func() {
+		leftSpacer,
+		newEzeButtonWithMargin("JSON 解析", func() {
 			jsonFormatFunc()
 		}),
 
-		newEzeButton("JSON 压缩 ", func() {
+		newEzeButtonWithMargin("JSON 压缩", func() {
 			jsonCompressFunc()
 		}),
 
-		newEzeButton("XML 解析  ", func() {
+		newEzeButtonWithMargin("XML 解析", func() {
 			xmlFormatFunc()
 		}),
 
-		newEzeButton("XML 压缩  ", func() {
+		newEzeButtonWithMargin("XML 压缩", func() {
 			xmlCompressFunc()
+		}),
+
+		widget.NewCheck("自动换行", func(b bool) {
+			homeInputBox.ToggleWrap()
 		}),
 	)
 }
 
-// 自定义按钮，可以设置最小尺寸
+// --------------------------- 自定义按钮，可以设置最小尺寸
+
 type EzeButton struct {
 	widget.Button
 	minSize fyne.Size
@@ -186,10 +200,31 @@ func newEzeButton(label string, onClick func()) *EzeButton {
 	btn.OnTapped = onClick
 
 	btn.minSize = fyne.Size{
-		Width:  100,
+		Width:  90,
 		Height: 35,
 	}
+
 	return btn
+}
+
+func newEzeButtonWithMargin(label string, onClick func()) *fyne.Container {
+	btn := newEzeButton(label, onClick)
+
+	var margin float32 = 5
+
+	//// 创建透明的矩形作为间隔
+	//leftSpacer := canvas.NewRectangle(theme.BackgroundColor())
+	//leftSpacer.SetMinSize(fyne.NewSize(0, 0)) // 设置固定宽度为20，高度为0表示不限制
+
+	rightSpacer := canvas.NewRectangle(theme.BackgroundColor())
+	rightSpacer.SetMinSize(fyne.NewSize(margin, 0)) // 同上
+
+	marginBox := container.NewHBox(
+		//leftSpacer, // 左边的外边距
+		btn,
+		rightSpacer, // 右边的外边距
+	)
+	return marginBox
 }
 
 // --------------------------- 可定义尺寸的自定义多行文本输入框
@@ -236,7 +271,7 @@ func smartFormatFunc() {
 	result, err := format.SmartFormat(homeInputBox.Text)
 	setNoteMsg("智能格式化失败: ", err)
 
-	homeInputBox.SetText(result)
+	SetFormatResult(result)
 }
 
 // smartCompressFunc 智能格式化
@@ -244,7 +279,7 @@ func smartCompressFunc() {
 	result, err := format.SmartCompress(homeInputBox.Text)
 	setNoteMsg("智能压缩失败: ", err)
 
-	homeInputBox.SetText(result)
+	SetFormatResult(result)
 }
 
 // timeNowFunc 展示当前时间戳
@@ -252,7 +287,11 @@ func timeNowFunc() {
 	result, err := format.FormatType(fmt.Sprint(time.Now().UnixMilli()), format.TypeTimeStampMills)
 	setNoteMsg("展示当前时间戳失败: ", err)
 
-	homeInputBox.SetText(result)
+	SetFormatResult(result)
+}
+
+func copyTextFunc() {
+	xclip.SetClipboard(homeInputBox.Text)
 }
 
 // jsonFormatFunc 格式化
@@ -260,7 +299,7 @@ func jsonFormatFunc() {
 	result, err := format.FormatType(homeInputBox.Text, format.TypeJson)
 	setNoteMsg("JSON 格式化失败: ", err)
 
-	homeInputBox.SetText(result)
+	SetFormatResult(result)
 }
 
 // jsonCompressFunc 压缩
@@ -268,7 +307,7 @@ func jsonCompressFunc() {
 	result, err := format.CompressType(homeInputBox.Text, format.TypeJson)
 	setNoteMsg("JSON 压缩失败: ", err)
 
-	homeInputBox.SetText(result)
+	SetFormatResult(result)
 }
 
 // xmlFormatFunc 格式化
@@ -276,7 +315,7 @@ func xmlFormatFunc() {
 	result, err := format.FormatType(homeInputBox.Text, format.TypeXml)
 	setNoteMsg("Xml 格式化失败: ", err)
 
-	homeInputBox.SetText(result)
+	SetFormatResult(result)
 }
 
 // xmlCompressFunc 压缩
@@ -284,7 +323,7 @@ func xmlCompressFunc() {
 	result, err := format.CompressType(homeInputBox.Text, format.TypeXml)
 	setNoteMsg("Xml 压缩失败: ", err)
 
-	homeInputBox.SetText(result)
+	SetFormatResult(result)
 }
 
 func setNoteMsg(prefix string, err error) {
@@ -305,9 +344,67 @@ func getSelectTextAndSmartFormat() {
 	// 聚焦
 	//mainWindowsFocus()
 
-	homeInputBox.SetText(selectText)
+	SetFormatResult(selectText)
 
 	homeWindow.RequestFocus()
 
 	smartFormatFunc()
+}
+
+// -1 代表展示的是最后一个历史记录
+var historyShowIndex = 0
+
+// 记录展示的是第几个历史记录, 比如 (10 / 10) 代表展示的是第 10 个历史记录
+//var historyIndexText string
+
+func saveHistory(result string) {
+	// 如果 historyShowIndex = -1 证明此时并没有展示历史记录, 可以直接将 text 保存到最后
+
+	// 如果 historyShowIndex != -1 证明此时展示的是历史记录
+	// 需要将 text 保存到 history 的最末尾, 并且把 historyShowIndex 也变回来 -1
+	// 然后 historyIndexText 也要更新
+
+	historyList = append(historyList, result)
+	historyTextLabel.SetText(fmt.Sprintf("%d/%d", len(historyList), len(historyList)))
+	historyShowIndex = len(historyList)
+}
+
+// changePreviousHistory
+// 展示上一个历史记录
+func changePreviousHistory() {
+	if historyShowIndex <= 1 {
+		return
+	}
+
+	historyShowIndex = historyShowIndex - 1
+
+	historyTextLabel.SetText(fmt.Sprintf("%d/%d", historyShowIndex, len(historyList)))
+
+	arrIndex := historyShowIndex - 1
+	homeInputBox.SetText(historyList[arrIndex])
+}
+
+// changeNextHistory
+// 展示下一个历史记录
+func changeNextHistory() {
+	if historyShowIndex >= len(historyList) {
+		return
+	}
+
+	historyShowIndex = historyShowIndex + 1
+
+	historyTextLabel.SetText(fmt.Sprintf("%d/%d", historyShowIndex, len(historyList)))
+
+	arrIndex := historyShowIndex - 1
+	homeInputBox.SetText(historyList[arrIndex])
+}
+
+func SetFormatResult(result string) {
+	if strutils.StringTrim(result) == strutils.StringTrim(homeInputBox.Text) {
+		return
+	}
+
+	homeInputBox.SetText(result)
+
+	saveHistory(result)
 }
