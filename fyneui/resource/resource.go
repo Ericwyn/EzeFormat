@@ -8,7 +8,7 @@ func ResourceIcon() *fyne.StaticResource {
 	if resourceIconCache != nil {
 		return resourceIconCache
 	}
-	return GetResource(GetRunnerPath() + "/res-static/icon/icon.png")
+	return GetResource(GetRunnerPath() + "/res-static/icon/eze_format_logo_64.png")
 }
 
 var resourceFontCache *fyne.StaticResource = nil

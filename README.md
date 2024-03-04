@@ -1,4 +1,6 @@
 # EzeJson
+![logo](res-static/icon/eze_format_logo_64.png)
+
 一款平平无奇的格式化工具
 
 - 使用 go + gtk3 实现

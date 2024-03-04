@@ -63,7 +63,7 @@ func StartApp(useXclipData bool) {
 
 func ShowMainUi() {
 	mainApp = app.New()
-	//mainApp.SetIcon(resource.ResourceIcon())
+	mainApp.SetIcon(resource.ResourceIcon())
 	mainApp.Settings().SetTheme(&resource.CustomerTheme{})
 
 	homeWindow = mainApp.NewWindow("EzeFormat")

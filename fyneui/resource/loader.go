@@ -19,7 +19,7 @@ var runnerPath = ""
 func GetRunnerPath() string {
 	if runnerPath == "" {
 		// 如果 /opt/EzeTranslate/config.yaml 存在的话, 优先使用 /opt/EzeTranslate/ 作为 runPath
-		if _, err := os.Stat("/opt/EzeTranslate/res-static"); err == nil {
+		if _, err := os.Stat("/opt/EzeFormat/res-static"); err == nil {
 			runnerPath = "/opt/EzeTranslate/"
 			log.D("[opt] 程序运行目录:" + runnerPath)
 			return runnerPath
