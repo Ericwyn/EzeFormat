@@ -9,7 +9,6 @@ import (
 	"github.com/Ericwyn/EzeFormat/utils/strutils"
 	"github.com/Ericwyn/EzeFormat/utils/xclip"
 	"github.com/gotk3/gotk3/gtk"
-	"strings"
 	"time"
 )
 
@@ -348,25 +347,6 @@ func cleanTextViewFunc() {
 		return
 	}
 	gotkutils.SetTextViewInput(inputView, "")
-}
-
-func jsonPreCheck(input string) bool {
-	if inputView == nil {
-		return false
-	}
-	input = strings.Trim(input, " ")
-	input = strings.Trim(input, "\n")
-	input = strings.Trim(input, "\r\n")
-	if input == "" || strings.HasPrefix(input, "【错误】") {
-		return false
-	}
-	if (strings.HasPrefix(input, "[") && strings.HasSuffix(input, "]")) ||
-		(strings.HasPrefix(input, "{") && strings.HasSuffix(input, "}")) {
-		return true
-	} else {
-		gotkutils.SetTextViewInput(inputView, "【错误】: 这看着不太像 JSON ? \n\n"+input)
-		return false
-	}
 }
 
 func setTextViewWrap(warpMode gtk.WrapMode) {
