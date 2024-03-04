@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-var version = "V1.0.4"
+var version = "V1.0.5"
 
 var mainApp fyne.App
 
@@ -63,7 +63,7 @@ func StartApp(useXclipData bool) {
 
 func ShowMainUi() {
 	mainApp = app.New()
-	mainApp.SetIcon(resource.ResourceIcon())
+	//mainApp.SetIcon(resource.ResourceIcon())
 	mainApp.Settings().SetTheme(&resource.CustomerTheme{})
 
 	homeWindow = mainApp.NewWindow("EzeFormat")
@@ -382,6 +382,7 @@ func changePreviousHistory() {
 
 	arrIndex := historyShowIndex - 1
 	homeInputBox.SetText(historyList[arrIndex])
+	setNoteMsg("", nil)
 }
 
 // changeNextHistory
@@ -397,6 +398,7 @@ func changeNextHistory() {
 
 	arrIndex := historyShowIndex - 1
 	homeInputBox.SetText(historyList[arrIndex])
+	setNoteMsg("", nil)
 }
 
 func SetFormatResult(result string) {
