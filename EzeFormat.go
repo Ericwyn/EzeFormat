@@ -9,6 +9,5 @@ var xclipFlag = flag.Bool("x", false, "从剪贴板获取输入数据")
 
 func main() {
 	flag.Parse()
-	//gtkui.StartApp(*xclipFlag)
 	fyneui.StartApp(*xclipFlag)
 }
