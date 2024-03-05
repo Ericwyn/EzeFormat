@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# 删除符号链接
+rm -f /usr/bin/EzeFormat
+
+exit 0

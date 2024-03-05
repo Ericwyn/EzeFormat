@@ -1,11 +1,7 @@
 # EzeJson
-![logo](res-static/icon/eze_format_logo_64.png)
+![logo](res-static/icon/eze_format_logo_128.png)
 
-一款平平无奇的格式化工具
-
-- 使用 go + gtk3 实现
-
-- linux 下支持获取划词 (需安装 xclip )
+一款平平无奇(但很好用)的格式化工具
 
 
 | JSON 格式化                     | JSON 压缩                      | 日期处理                         |
@@ -19,6 +15,7 @@
 
 ## Feature
 - 纯 Golang 实现, 轻便小巧
+- 支持划词获取（Linux 下可用，依赖 xclip），使用 `-x` 命令启动
 - 支持自动识别输入的数据格式
   - JSON
   - XML

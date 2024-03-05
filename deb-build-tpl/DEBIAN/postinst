@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# 创建符号链接, 使得安装之后可以在命令行调用 EzeTranslate
+ln -sf /opt/EzeFormat/EzeFormat /usr/bin/EzeFormat
+
+exit 0

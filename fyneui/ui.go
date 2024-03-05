@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/Ericwyn/EzeFormat/conf"
 	"github.com/Ericwyn/EzeFormat/fyneui/resource"
 	"github.com/Ericwyn/EzeFormat/ipc"
 	"github.com/Ericwyn/EzeFormat/utils/format"
@@ -15,8 +16,6 @@ import (
 	"github.com/Ericwyn/EzeFormat/utils/xclip"
 	"time"
 )
-
-var version = "V1.0.5"
 
 var mainApp fyne.App
 
@@ -81,7 +80,7 @@ func ShowMainUi() {
 	homeNoteLabel = widget.NewLabel("")
 
 	//authorNote := widget.NewLabel(" Source: https://github.com/Ericwyn/EzeFormat 【 " + version + "】")
-	authorNote := widget.NewRichTextFromMarkdown("[https://github.com/Ericwyn/EzeFormat](https://github.com/Ericwyn/EzeFormat)     **" + version + "**")
+	authorNote := widget.NewRichTextFromMarkdown("[https://github.com/Ericwyn/EzeFormat](https://github.com/Ericwyn/EzeFormat)     **" + conf.Version + "**")
 
 	//hello := widget.NewLabel("Hello Fyne!")
 	homeWindow.SetContent(container.NewVBox(

@@ -1,0 +1,8 @@
+Package: ezeformat
+Version: 1.5
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: xclip
+Maintainer: Ericwyn <Ericwyn.chen@gmail.com>
+Description: EzeFormat is a translation tool.

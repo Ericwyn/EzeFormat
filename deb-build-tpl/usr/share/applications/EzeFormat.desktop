@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=EzeFormat
+Exec=/opt/EzeFormat/EzeFormat
+Icon=/opt/EzeFormat/res-static/icon/eze_format_logo_512.png
+Terminal=false
+Categories=Utility;
