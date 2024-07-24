@@ -1,8 +1,8 @@
 Package: ezeformat
-Version: 1.5
+Version: 1.0.7
 Section: utils
 Priority: optional
 Architecture: amd64
 Depends: xclip
 Maintainer: Ericwyn <Ericwyn.chen@gmail.com>
-Description: EzeFormat is a translation tool.
+Description: EzeFormat is a json/xml/date format utils, for developer

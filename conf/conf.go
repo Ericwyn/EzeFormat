@@ -1,3 +1,3 @@
 package conf
 
-const Version = "V1.0.6"
+const Version = "V1.0.7"
