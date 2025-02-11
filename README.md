@@ -26,6 +26,8 @@
     - yyyy-MM-dd HH:mm:ss
     - yyyy-MM-dd HH:mm:ss.SSS
 - 支持查看历史
+- 快捷键
+  - 输入框获取焦点的时候, alt/ctrl + enter 可以快速触发 智能格式化
 
 
 ## TODO
