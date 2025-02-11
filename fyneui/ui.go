@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/Ericwyn/EzeFormat/conf"
@@ -74,7 +75,9 @@ func ShowMainUi() {
 	homeWindow.CenterOnScreen()
 
 	// --------------------
-	homeInputBox = NewEzeMultiLineEntry(fyne.Size{Height: 550})
+	homeInputBox = NewEzeMultiLineEntry(fyne.Size{Height: 550}, func() {
+		smartFormatFunc()
+	})
 	//homeInputBox.Resize()
 
 	homeNoteLabel = widget.NewLabel("")
@@ -230,7 +233,8 @@ func newEzeButtonWithMargin(label string, onClick func()) *fyne.Container {
 
 type EzeMultiLineEntry struct {
 	widget.Entry
-	minSize fyne.Size
+	minSize        fyne.Size
+	targetCallback func() // 快捷键回调函数, alt + enter / ctrl + enter
 }
 
 func (entry *EzeMultiLineEntry) ToggleWrap() {
@@ -244,10 +248,11 @@ func (entry *EzeMultiLineEntry) ToggleWrap() {
 
 // NewEzeMultiLineEntry creates a new instance of EzeMultiLineEntry with a specified minimum size.
 // It ensures the embedded Entry is properly initialized.
-func NewEzeMultiLineEntry(minSize fyne.Size) *EzeMultiLineEntry {
+func NewEzeMultiLineEntry(minSize fyne.Size, targetCallback func()) *EzeMultiLineEntry {
 	entry := &EzeMultiLineEntry{minSize: minSize}
 	entry.ExtendBaseWidget(entry) // This is crucial for ensuring the widget is properly setup
 	entry.MultiLine = true        // Enable multi-line support
+	entry.targetCallback = targetCallback
 	return entry
 }
 
@@ -261,6 +266,19 @@ func (e *EzeMultiLineEntry) MinSize() fyne.Size {
 		originalMinSize.Height = e.minSize.Height
 	}
 	return originalMinSize
+}
+
+func (m *EzeMultiLineEntry) TypedShortcut(s fyne.Shortcut) {
+	if _, ok := s.(*desktop.CustomShortcut); !ok {
+		m.Entry.TypedShortcut(s)
+		return
+	}
+	shortcut := s.(*desktop.CustomShortcut)
+	// 如果是 alt + 回车 / ctrl + 回车，就直接触发翻译
+	if shortcut.KeyName == fyne.KeyReturn &&
+		(shortcut.Modifier == fyne.KeyModifierControl || shortcut.Modifier == fyne.KeyModifierAlt) {
+		m.targetCallback()
+	}
 }
 
 // ---------------------------------------------------------------------
